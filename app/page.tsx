@@ -1,7 +1,7 @@
 "use client"
 
-import RootLayout from "../src/app/layout"
+import ArtistDashboard from "../src/app/page"
 
 export default function SyntheticV0PageForDeployment() {
-  return <RootLayout />
+  return <ArtistDashboard />
 }
