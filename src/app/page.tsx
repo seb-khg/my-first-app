@@ -13,7 +13,6 @@ import { EditArtistDialog } from "@/components/edit-artist-dialog"
 import { DeleteArtistDialog } from "@/components/delete-artist-dialog"
 import { createClient } from "@supabase/supabase-js"
 
-// Environment variables with fallbacks
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://lvwljghoauhzwgrpkhiv.supabase.co"
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
@@ -40,7 +39,6 @@ export default function Page() {
   const [deletingArtist, setDeletingArtist] = useState<Artist | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch artists from Supabase
   const fetchArtists = async () => {
     try {
       const { data, error } = await supabase.from("artists").select("*").order("name", { ascending: true })
