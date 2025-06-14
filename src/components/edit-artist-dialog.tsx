@@ -19,7 +19,7 @@ interface Artist {
   id: string
   name: string
   genre: string
-  image: string
+  image?: string
 }
 
 interface EditArtistDialogProps {
@@ -42,7 +42,7 @@ export function EditArtistDialog({ open, onOpenChange, artist, onEdit }: EditArt
       setFormData({
         name: artist.name,
         genre: artist.genre,
-        image: artist.image,
+        image: artist.image || "",
       })
     }
   }, [artist])

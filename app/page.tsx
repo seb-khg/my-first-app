@@ -1,7 +1,7 @@
 "use client"
 
-import ArtistDashboard from "../src/app/page"
+import Page from "../src/app/page"
 
 export default function SyntheticV0PageForDeployment() {
-  return <ArtistDashboard />
+  return <Page />
 }

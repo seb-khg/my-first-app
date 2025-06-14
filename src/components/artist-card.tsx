@@ -11,7 +11,7 @@ interface Artist {
   id: string
   name: string
   genre: string
-  image: string
+  image?: string
 }
 
 interface ArtistCardProps {
@@ -24,12 +24,14 @@ export function ArtistCard({ artist, onEdit, onDelete }: ArtistCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
 
+  const hasValidImage = artist.image && !imageError && artist.image.trim() !== ""
+
   return (
     <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:bg-white/90 hover:-translate-y-2 overflow-hidden">
       <CardContent className="p-0">
         <div className="relative">
           <div className="aspect-square overflow-hidden bg-gradient-to-br from-violet-100 via-purple-100 to-pink-100">
-            {!imageError && artist.image ? (
+            {hasValidImage ? (
               <img
                 src={artist.image || "/placeholder.svg"}
                 alt={artist.name}
@@ -42,11 +44,9 @@ export function ArtistCard({ artist, onEdit, onDelete }: ArtistCardProps) {
               </div>
             )}
 
-            {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
 
-          {/* Action buttons */}
           <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
             <Button
               variant="secondary"
@@ -81,7 +81,6 @@ export function ArtistCard({ artist, onEdit, onDelete }: ArtistCardProps) {
             </DropdownMenu>
           </div>
 
-          {/* Play button overlay */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
             <Button
               size="icon"

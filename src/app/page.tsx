@@ -13,17 +13,22 @@ import { EditArtistDialog } from "@/components/edit-artist-dialog"
 import { DeleteArtistDialog } from "@/components/delete-artist-dialog"
 import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+// Environment variables with fallbacks
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://lvwljghoauhzwgrpkhiv.supabase.co"
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2d2xqZ2hvYXVoendncnBraGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5MTg4MDQsImV4cCI6MjA2NTQ5NDgwNH0.4F43Q_V4ZVqL-ShB1_6a_3Z5JFW_bTLiaETiYdzQbbc"
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 interface Artist {
   id: string
   name: string
   genre: string
-  image: string
-  created_at?: string
+  image?: string
 }
 
-export default function ArtistDashboard() {
+export default function Page() {
   const [artists, setArtists] = useState<Artist[]>([])
   const [filteredArtists, setFilteredArtists] = useState<Artist[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -33,16 +38,27 @@ export default function ArtistDashboard() {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null)
   const [deletingArtist, setDeletingArtist] = useState<Artist | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Fetch artists from Supabase
   const fetchArtists = async () => {
     try {
-      const { data, error } = await supabase.from("artists").select("*").order("created_at", { ascending: false })
+      const { data, error } = await supabase.from("artists").select("*").order("name", { ascending: true })
 
       if (error) throw error
-      setArtists(data || [])
+
+      const mappedData = (data || []).map((artist: any) => ({
+        id: artist.id,
+        name: artist.name || "",
+        genre: artist.genre || "Unknown",
+        image: artist.image || artist.image_url || "",
+      }))
+
+      setArtists(mappedData)
+      setError(null)
     } catch (error) {
       console.error("Error fetching artists:", error)
+      setError("Failed to load artists. Please check your database connection.")
     } finally {
       setIsLoading(false)
     }
@@ -52,7 +68,6 @@ export default function ArtistDashboard() {
     fetchArtists()
   }, [])
 
-  // Filter and sort artists
   useEffect(() => {
     const filtered = artists.filter((artist) => {
       const matchesSearch =
@@ -62,7 +77,6 @@ export default function ArtistDashboard() {
       return matchesSearch && matchesGenre
     })
 
-    // Sort artists
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "name-asc":
@@ -81,29 +95,49 @@ export default function ArtistDashboard() {
     setFilteredArtists(filtered)
   }, [artists, searchTerm, selectedGenre, sortBy])
 
-  const genres = Array.from(new Set(artists.map((artist) => artist.genre)))
+  const genres = Array.from(new Set(artists.map((artist) => artist.genre).filter(Boolean)))
 
   const handleAddArtist = async (artistData: Omit<Artist, "id">) => {
     try {
-      const { error } = await supabase.from("artists").insert([artistData])
+      const insertData: any = {
+        name: artistData.name,
+        genre: artistData.genre,
+      }
+
+      if (artistData.image) {
+        insertData.image = artistData.image
+      }
+
+      const { error } = await supabase.from("artists").insert([insertData])
 
       if (error) throw error
       await fetchArtists()
       setShowAddDialog(false)
     } catch (error) {
       console.error("Error adding artist:", error)
+      setError("Failed to add artist. Please try again.")
     }
   }
 
   const handleEditArtist = async (id: string, artistData: Omit<Artist, "id">) => {
     try {
-      const { error } = await supabase.from("artists").update(artistData).eq("id", id)
+      const updateData: any = {
+        name: artistData.name,
+        genre: artistData.genre,
+      }
+
+      if (artistData.image !== undefined) {
+        updateData.image = artistData.image
+      }
+
+      const { error } = await supabase.from("artists").update(updateData).eq("id", id)
 
       if (error) throw error
       await fetchArtists()
       setEditingArtist(null)
     } catch (error) {
       console.error("Error updating artist:", error)
+      setError("Failed to update artist. Please try again.")
     }
   }
 
@@ -116,6 +150,7 @@ export default function ArtistDashboard() {
       setDeletingArtist(null)
     } catch (error) {
       console.error("Error deleting artist:", error)
+      setError("Failed to delete artist. Please try again.")
     }
   }
 
@@ -136,9 +171,35 @@ export default function ArtistDashboard() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto shadow-lg border-0 bg-white/70 backdrop-blur-sm">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Connection Error</h3>
+            <p className="text-slate-600 mb-6">{error}</p>
+            <div className="space-y-3">
+              <Button
+                onClick={fetchArtists}
+                className="bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 hover:from-violet-600 hover:via-purple-600 hover:to-pink-600 w-full"
+              >
+                Try Again
+              </Button>
+              <p className="text-xs text-slate-500">
+                Make sure your Supabase table has 'id', 'name', and 'genre' columns
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50">
-      {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-white/20 shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -176,7 +237,6 @@ export default function ArtistDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Controls */}
         <Card className="mb-8 shadow-lg border-0 bg-white/70 backdrop-blur-sm animate-slide-up">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -225,7 +285,6 @@ export default function ArtistDashboard() {
           </CardContent>
         </Card>
 
-        {/* Artists Grid */}
         {filteredArtists.length === 0 ? (
           <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm animate-fade-in">
             <CardContent className="p-12 text-center">
@@ -266,7 +325,6 @@ export default function ArtistDashboard() {
         )}
       </div>
 
-      {/* Dialogs */}
       <AddArtistDialog open={showAddDialog} onOpenChange={setShowAddDialog} onAdd={handleAddArtist} />
 
       {editingArtist && (
