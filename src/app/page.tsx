@@ -13,6 +13,7 @@ import { EditArtistDialog } from "@/components/edit-artist-dialog"
 import { DeleteArtistDialog } from "@/components/delete-artist-dialog"
 import { createClient } from "@supabase/supabase-js"
 
+// Environment variables with fallbacks
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://lvwljghoauhzwgrpkhiv.supabase.co"
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
@@ -39,20 +40,19 @@ export default function Page() {
   const [deletingArtist, setDeletingArtist] = useState<Artist | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Fetch artists from Supabase
   const fetchArtists = async () => {
     try {
       const { data, error } = await supabase.from("artists").select("*").order("name", { ascending: true })
 
       if (error) throw error
 
-      const mappedData = (data || []).map(
-        (artist: { id: string; name: string; genre: string; image?: string; image_url?: string }) => ({
-          id: artist.id,
-          name: artist.name || "",
-          genre: artist.genre || "Unknown",
-          image: artist.image || artist.image_url || "",
-        }),
-      )
+      const mappedData = (data || []).map((artist: any) => ({
+        id: artist.id,
+        name: artist.name || "",
+        genre: artist.genre || "Unknown",
+        image: artist.image || artist.image_url || "",
+      }))
 
       setArtists(mappedData)
       setError(null)
@@ -99,7 +99,7 @@ export default function Page() {
 
   const handleAddArtist = async (artistData: Omit<Artist, "id">) => {
     try {
-      const insertData: { name: string; genre: string; image?: string } = {
+      const insertData: any = {
         name: artistData.name,
         genre: artistData.genre,
       }
@@ -121,7 +121,7 @@ export default function Page() {
 
   const handleEditArtist = async (id: string, artistData: Omit<Artist, "id">) => {
     try {
-      const updateData: { name: string; genre: string; image?: string } = {
+      const updateData: any = {
         name: artistData.name,
         genre: artistData.genre,
       }
@@ -189,7 +189,7 @@ export default function Page() {
                 Try Again
               </Button>
               <p className="text-xs text-slate-500">
-                Make sure your Supabase table has &apos;id&apos;, &apos;name&apos;, and &apos;genre&apos; columns
+                Make sure your Supabase table has 'id', 'name', and 'genre' columns
               </p>
             </div>
           </CardContent>
