@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Image from "next/image"
 
 interface Artist {
   id: string
@@ -32,9 +33,11 @@ export function ArtistCard({ artist, onEdit, onDelete }: ArtistCardProps) {
         <div className="relative">
           <div className="aspect-square overflow-hidden bg-gradient-to-br from-violet-100 via-purple-100 to-pink-100">
             {hasValidImage ? (
-              <img
-                src={artist.image || "/placeholder.svg"}
+              <Image
+                src={artist.image || "/placeholder.svg?height=300&width=300"}
                 alt={artist.name}
+                width={300}
+                height={300}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 onError={() => setImageError(true)}
               />

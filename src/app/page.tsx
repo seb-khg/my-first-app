@@ -45,12 +45,14 @@ export default function Page() {
 
       if (error) throw error
 
-      const mappedData = (data || []).map((artist: any) => ({
-        id: artist.id,
-        name: artist.name || "",
-        genre: artist.genre || "Unknown",
-        image: artist.image || artist.image_url || "",
-      }))
+      const mappedData = (data || []).map(
+        (artist: { id: string; name: string; genre: string; image?: string; image_url?: string }) => ({
+          id: artist.id,
+          name: artist.name || "",
+          genre: artist.genre || "Unknown",
+          image: artist.image || artist.image_url || "",
+        }),
+      )
 
       setArtists(mappedData)
       setError(null)
@@ -97,7 +99,7 @@ export default function Page() {
 
   const handleAddArtist = async (artistData: Omit<Artist, "id">) => {
     try {
-      const insertData: any = {
+      const insertData: { name: string; genre: string; image?: string } = {
         name: artistData.name,
         genre: artistData.genre,
       }
@@ -119,7 +121,7 @@ export default function Page() {
 
   const handleEditArtist = async (id: string, artistData: Omit<Artist, "id">) => {
     try {
-      const updateData: any = {
+      const updateData: { name: string; genre: string; image?: string } = {
         name: artistData.name,
         genre: artistData.genre,
       }
@@ -187,7 +189,7 @@ export default function Page() {
                 Try Again
               </Button>
               <p className="text-xs text-slate-500">
-                Make sure your Supabase table has 'id', 'name', and 'genre' columns
+                Make sure your Supabase table has &apos;id&apos;, &apos;name&apos;, and &apos;genre&apos; columns
               </p>
             </div>
           </CardContent>
